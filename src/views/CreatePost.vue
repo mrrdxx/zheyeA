@@ -32,7 +32,7 @@
       </div>
       <div class="mb-3">
         <label class="form-label">文章详情：</label>
-        <textarea ref="textArea" class="form-control"></textarea>
+        <Editor v-model="contentVal" :options="editorOptions" ref="editorRef"></Editor>
         <validate-input
           rows="10"
           type="text"
@@ -61,14 +61,19 @@ import type { RulesProp } from '../types'
 import ValidateForm from '../components/ValidateForm.vue'
 import createMessage from '../components/createMessage'
 import { beforeUploadCheck } from '../helper'
-import EasyMDE from 'easymde'
-
+import EasyMDE, { Options } from 'easymde'
+import Editor from '../components/Editor.vue'
+interface EditorInstance {
+  clear: () => void
+  getMDEInstance: () => EasyMDE | null
+}
 export default defineComponent({
   name: 'CreatePost',
   components: {
     ValidateInput,
     ValidateForm,
-    Uploader
+    Uploader,
+    Editor
   },
   setup () {
     const uploadedData = ref()
@@ -78,7 +83,11 @@ export default defineComponent({
     const route = useRoute()
     const textArea = ref<null | HTMLTextAreaElement>(null)
     const isEditMode = !!route.query.id
+    const editorRef = ref<null|EditorInstance>(null)
     let imageId = ''
+    const editorOptions: Options = {
+      spellChecker: false
+    }
     const titleRules: RulesProp = [
       { type: 'required', message: '文章标题不能为空' }
     ]
@@ -87,10 +96,8 @@ export default defineComponent({
       { type: 'required', message: '文章详情不能为空' }
     ]
     onMounted(() => {
-      if (textArea.value) {
-        const easyMDEInstance = new EasyMDE({
-          element: textArea.value
-        })
+      if (editorRef.value) {
+        console.log(editorRef.value.getMDEInstance())
       }
       if (isEditMode) {
         store.dispatch('fetchPost', route.query.id).then((rawData:ResponseType<PostProps>) => {
@@ -181,7 +188,9 @@ export default defineComponent({
       uploadCheck,
       uploadedData,
       isEditMode,
-      textArea
+      textArea,
+      editorOptions,
+      editorRef
 
     }
   }

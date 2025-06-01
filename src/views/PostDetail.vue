@@ -5,7 +5,6 @@
     @modal-on-confirm="hideAndDeletePost"
     >
       <p>确定要删除这篇文章吗？</p>
-
     </Modal>
     <article class="w-75 mx-auto mb-5 pb-3" v-if="currentPost">
       <img :src="currentImageUrl" alt="currentPost.title" class="rounded-lg img-fluid my-4" v-if="currentImageUrl">
