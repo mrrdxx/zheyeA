@@ -44,12 +44,15 @@ export interface PostProps {
   author?: string|UserProps;
   isHTML?: boolean; // 新增这一行
 }
+interface ListProps<P> {
+  [id: string]: P;
+}
 export interface GlobalDataProps {
   error: GlobalErrorProps;
   token: string;
   loading: boolean;
-  columns: ColumnProps[];
-  posts: PostProps[];
+  columns: ListProps<ColumnProps>;
+  posts: ListProps<PostProps>;
   user: UserProps;
 }
 
@@ -75,8 +78,8 @@ const store = createStore<GlobalDataProps>({
     },
     token: localStorage.getItem('token') || '',
     loading: false,
-    columns: [],
-    posts: [],
+    columns: {},
+    posts: {},
     user: {
       isLogin: false
     }
