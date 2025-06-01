@@ -1,17 +1,10 @@
 import { createStore, Commit } from 'vuex'
 // import { testData, testPosts } from './testData's
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 export interface ResponseType<P= { [key: string]: any } >{
   code:number;
   msg:string;
   data:P;
-}
-export interface UserProps {
-  isLogin: boolean;
-  nickName?: string;
-  _id?: string;
-  column?: string;
-  email?: string;
 }
 export interface ImageProps{
   _id?: string
@@ -19,6 +12,16 @@ export interface ImageProps{
   createdAt?: string
   fitUrl?: string
 }
+export interface UserProps {
+  isLogin: boolean;
+  nickName?: string;
+  _id?: string;
+  column?: string;
+  email?: string;
+  avatar?: ImageProps;
+  description?: string;
+}
+
 export interface GlobalErrorProps {
   status: boolean;
   message?: string;
@@ -38,7 +41,7 @@ export interface PostProps {
   image?: ImageProps|string;
   createdAt?: string;
   column: string;
-  author?: string;
+  author?: string|UserProps;
 }
 export interface GlobalDataProps {
   error: GlobalErrorProps;
@@ -56,6 +59,11 @@ const getAndCommit = async (url: string, commit: Commit, mutationName: string) =
 }
 const postAndCommit = async (url: string, commit: Commit, mutationName: string, payload: any) => {
   const { data } = await axios.post(url, payload)
+  commit(mutationName, data)
+  return data
+}
+const asyncAndCommit = async (url: string, commit: Commit, mutationName: string, config: AxiosRequestConfig = { method: 'get' }) => {
+  const { data } = await axios(url, config)
   commit(mutationName, data)
   return data
 }
@@ -86,6 +94,20 @@ const store = createStore<GlobalDataProps>({
     fetchPosts (state, rawData) {
       state.posts = rawData.data.list
     },
+    fetchPost (state, rawData) {
+      state.posts = [rawData.data]
+    },
+    deletePost (state, { data }) {
+      state.posts = state.posts.filter(post => post._id !== data._id)
+    },
+    updatePost (state, { data }) {
+      state.posts = state.posts.map(post => {
+        if (post._id === data._id) {
+          return data
+        }
+        return post
+      })
+    },
     fetchCurrentUser (state, rawData) {
       state.user = { isLogin: true, ...rawData.data }
     },
@@ -101,7 +123,6 @@ const store = createStore<GlobalDataProps>({
       localStorage.setItem('token', token)
       axios.defaults.headers.common.Authorization = `Bearer ${token}`
     },
-
     logout (state) {
       state.token = ''
       // state.user = { isLogin: false }
@@ -113,18 +134,6 @@ const store = createStore<GlobalDataProps>({
     async fetchColumns ({ commit }) {
       return getAndCommit('/columns', commit, 'fetchColumns')
     },
-    /* // 写法1：使用 context
-    async fetchColumns (context) {
-      const { data } = await axios.get('/columns')
-      context.commit('fetchColumns', data)
-    }
-
-    // 写法2：直接解构出 commit
-    async fetchColumns ({ commit }) {
-      const { data } = await axios.get('/columns')
-      commit('fetchColumns', data)
-    }
-    */
     async fetchColumn ({ commit }, cid) {
       const { data } = await axios.get(`/columns/${cid}`)
       return commit('fetchColumn', data)
@@ -132,6 +141,15 @@ const store = createStore<GlobalDataProps>({
     async fetchPosts ({ commit }, cid) {
       const { data } = await axios.get(`/columns/${cid}/posts`)
       return commit('fetchPosts', data)
+    },
+    fetchPost ({ commit }, id) {
+      return getAndCommit(`/posts/${id}`, commit, 'fetchPost')
+    },
+    updatePost ({ commit }, { id, payload }) {
+      return asyncAndCommit(`/posts/${id}`, commit, 'updatePost', {
+        method: 'patch',
+        data: payload
+      })
     },
     login ({ commit }, payload) {
       return postAndCommit('/user/login', commit, 'login', payload)
@@ -141,6 +159,11 @@ const store = createStore<GlobalDataProps>({
     },
     createPost ({ commit }, payload) {
       return postAndCommit('/posts', commit, 'createPost', payload)
+    },
+    deletePost ({ commit }, id) {
+      return asyncAndCommit(`/posts/${id}`, commit, 'deletePost', {
+        method: 'delete'
+      })
     },
     loginAndFetch ({ dispatch }, loginData) {
       return dispatch('login', loginData).then(() => {
@@ -156,6 +179,9 @@ const store = createStore<GlobalDataProps>({
     },
     getPostsByCid: (state) => (cid: string) => {
       return state.posts.filter(post => post.column === cid)
+    },
+    getCurrentPost: (state) => (id: string) => {
+      return state.posts.find(post => post._id === id)
     }
   }
 })

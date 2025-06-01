@@ -11,13 +11,15 @@
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
     "core-js": "^3.8.3",
-    "marked": "^15.0.12",
+    "easymde": "^2.20.0",
+    "markdown-it": "^14.1.0",
     "mitt": "^3.0.1",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
     "vuex": "^4.1.0"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli-plugin-babel": "~5.0.0",

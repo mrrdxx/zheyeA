@@ -1,21 +1,19 @@
 <template>
   <div class="validate-input-container pb-3">
-    <input type="text"
-           class="form-control"
-           :class="{'is-invalid': inputRef.error}"
-           :value="inputRef.val"
-           @blur="validateInput"
-           @input="updateValue"
-           v-bind="$attrs"
-           v-if="tag !== 'textarea'"
+    <input
+      class="form-control"
+      :class="{'is-invalid': inputRef.error}"
+      @blur="validateInput"
+      v-model="inputRef.val"
+      v-bind="$attrs"
+      v-if="tag !== 'textarea'"
     />
     <textarea
       v-else
       class="form-control"
       :class="{'is-invalid': inputRef.error}"
-      :value="inputRef.val"
       @blur="validateInput"
-      @input="updateValue"
+      v-model="inputRef.val"
       v-bind="$attrs"
     ></textarea>
     <span v-if="inputRef.error" class="invalid-feedback">{{inputRef.message}}</span>
@@ -23,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, PropType, onMounted } from 'vue'
+import { defineComponent, reactive, PropType, onMounted, watch, computed } from 'vue'
 import { emitter } from './ValidateForm.vue'
 import type { RulesProp } from '../types'
 const emailReg = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
@@ -52,15 +50,19 @@ emit：用于触发事件的函数
 expose：用于暴露组件实例上的属性 */
   setup (props, context) {
     const inputRef = reactive({
-      val: props.modelValue || '',
+      val: computed({
+        // 读取时用到get, 设置时用到set
+        get () {
+          return props.modelValue || ''
+        },
+        set (val) {
+          context.emit('update:modelValue', val)
+        }
+      }),
       error: false,
       message: ''
     })
-    const updateValue = (e: KeyboardEvent) => {
-      const targetValue = (e.target as HTMLInputElement).value
-      inputRef.val = targetValue
-      context.emit('update:modelValue', targetValue)
-    }
+
     const validateInput = () => {
       if (props.rules) {
         const allPassed = props.rules.every(rule => {
@@ -96,7 +98,7 @@ expose：用于暴露组件实例上的属性 */
     onMounted(() => {
       emitter.emit('form-item-created', validateInput)
     })
-    return { inputRef, validateInput, updateValue }
+    return { inputRef, validateInput }
   }
 })
 </script>

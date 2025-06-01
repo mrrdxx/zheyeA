@@ -11,12 +11,12 @@
         </div>
       </div>
     </section>
-    <Uploader action="/upload" :before-upload="beforeUpload"
+    <!-- <Uploader action="/upload" :before-upload="beforeUpload"
     @file-uploaded="onFileUploaded">
       <template #uploaded="dataProps">
         <img :src="dataProps.uploadedData.data.url" width="500">
       </template>
-    </Uploader>
+    </Uploader> -->
     <div class="font-weight-bold text-center">
       <h4 class="font-weight-bold text-center">发现精彩</h4>
       <column-list :list="list"></column-list>
@@ -34,13 +34,13 @@ export default defineComponent({
   /* eslint-disable vue/multi-word-component-names */
   name: 'Home',
   components: {
-    ColumnList,
-    Uploader
+    ColumnList
   },
   setup () {
     const store = useStore<GlobalDataProps>()
     onMounted(() => {
       store.dispatch('fetchColumns')
+      console.log('当前用户的专栏信息：', store.state.user.column)
     })
     const list = computed(() => store.state.columns)
     const beforeUpload = (file: File) => {

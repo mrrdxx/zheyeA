@@ -4,7 +4,7 @@ import './registerServiceWorker'
 import router from './router'
 import axios from 'axios'
 import store from './store'
-
+import 'easymde/dist/easymde.min.css'
 axios.defaults.baseURL = 'http://apis.imooc.com/api/'
 axios.interceptors.request.use(config => {
   config.params = { ...config.params, icode: '11C721C22B8DD2DD' }
