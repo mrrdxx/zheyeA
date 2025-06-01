@@ -11,15 +11,14 @@
         </div>
       </div>
     </section>
-    <!-- <Uploader action="/upload" :before-upload="beforeUpload"
-    @file-uploaded="onFileUploaded">
-      <template #uploaded="dataProps">
-        <img :src="dataProps.uploadedData.data.url" width="500">
-      </template>
-    </Uploader> -->
     <div class="font-weight-bold text-center">
       <h4 class="font-weight-bold text-center">发现精彩</h4>
       <column-list :list="list"></column-list>
+      <button
+      class="btn btn-outline-primary mt-2 mb-5 mx-auto btn-block w-25"
+      @click="loadMorePage" v-if="!isLastPage">
+      加载更多
+      </button>
     </div>
   </div>
 </template>
@@ -29,6 +28,7 @@ import { GlobalDataProps, ImageProps, ResponseType } from '@/store'
 import ColumnList from '../components/ColumnList.vue'
 import { useStore } from 'vuex'
 import Uploader from '../components/Uploader.vue'
+import useLoadMore from '@/hooks/useLoaderMore'
 import createMessage from '../components/createMessage'
 export default defineComponent({
   /* eslint-disable vue/multi-word-component-names */
@@ -38,29 +38,16 @@ export default defineComponent({
   },
   setup () {
     const store = useStore<GlobalDataProps>()
+    const total = computed(() => store.state.columns.total)
     onMounted(() => {
-      store.dispatch('fetchColumns')
-      console.log('当前用户的专栏信息：', store.state.user.column)
+      store.dispatch('fetchColumns', { pageSize: 3 })
     })
-    const list = computed(() => store.state.columns)
-    const beforeUpload = (file: File) => {
-      const isJPG = file.type === 'image/jpeg'
-      if (!isJPG) {
-        createMessage('上传失败，请上传jpg格式图片', 'error')
-      }
-      return isJPG
-    }
-    const onFileUploaded = (rawData: ResponseType<ImageProps>) => {
-      createMessage(`上传图片ID ${rawData.data._id}`, 'success')
-    }
-    const onFileUploadedError = (error: any) => {
-      console.log(error)
-    }
+    const list = computed(() => store.getters.getColumns)
+    const { loadMorePage, isLastPage } = useLoadMore('fetchColumns', total, { pageSize: 3, currentPage: 2 })
     return {
       list,
-      onFileUploaded,
-      onFileUploadedError,
-      beforeUpload
+      loadMorePage,
+      isLastPage
     }
   }
 })
