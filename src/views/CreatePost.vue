@@ -32,15 +32,14 @@
       </div>
       <div class="mb-3">
         <label class="form-label">文章详情：</label>
-        <Editor v-model="contentVal" :options="editorOptions" ref="editorRef"></Editor>
-        <validate-input
-          rows="10"
-          type="text"
-          tag="textarea"
-          placeholder="请输入文章详情"
-          :rules="contentRules"
-          v-model="contentVal"
-        />
+        <Editor
+        v-model="contentVal"
+        :options="editorOptions"
+        ref="editorRef"
+        @blur="checkEditor"
+        :class="{'is-invalid': !editorStatus.isValid}"
+        ></Editor>
+        <span v-if="!editorStatus.isValid" class="invalid-feedback mt-1">{{editorStatus.message}}</span>
       </div>
       <template #submit>
         <button class="btn btn-primary btn-large">{{isEditMode ? '更新文章' : '创建文章'}}</button>
@@ -50,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, reactive } from 'vue'
 import { useStore } from 'vuex'
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'// useRoute 获取路由参数,useRouter 跳转路由
@@ -78,6 +77,10 @@ export default defineComponent({
   setup () {
     const uploadedData = ref()
     const titleVal = ref('')
+    const editorStatus = reactive({
+      isValid: true,
+      message: ''
+    })
     const router = useRouter()
     const store = useStore<GlobalDataProps>()
     const route = useRoute()
@@ -95,6 +98,15 @@ export default defineComponent({
     const contentRules: RulesProp = [
       { type: 'required', message: '文章详情不能为空' }
     ]
+    const checkEditor = () => {
+      if (contentVal.value.trim() === '') {
+        editorStatus.isValid = false
+        editorStatus.message = '文章详情不能为空'
+      } else {
+        editorStatus.isValid = true
+        editorStatus.message = ''
+      }
+    }
     onMounted(() => {
       if (editorRef.value) {
         console.log(editorRef.value.getMDEInstance())
@@ -121,6 +133,7 @@ export default defineComponent({
       }
     }
     const onFormSubmit = (result: boolean) => {
+      checkEditor()
       if (result) {
         const { column, _id } = store.state.user
         if (column) {
@@ -190,8 +203,9 @@ export default defineComponent({
       isEditMode,
       textArea,
       editorOptions,
-      editorRef
-
+      editorRef,
+      checkEditor,
+      editorStatus
     }
   }
 })

@@ -42,6 +42,7 @@ export interface PostProps {
   createdAt?: string;
   column: string;
   author?: string|UserProps;
+  isHTML?: boolean; // 新增这一行
 }
 export interface GlobalDataProps {
   error: GlobalErrorProps;

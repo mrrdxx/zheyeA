@@ -32,7 +32,8 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, computed, ref } from 'vue'
-import MarkdownIt from 'markdown-it'// 其实已经成功了
+// import MarkdownIt from 'markdown-it'// 其实已经成功了
+import { marked } from 'marked'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { GlobalDataProps, PostProps, ImageProps, UserProps, ResponseType } from '../store'
@@ -53,14 +54,15 @@ export default defineComponent({
     const router = useRouter()
     const modalIsVisible = ref(false)
     const currentId = route.params.id
-    const md = new MarkdownIt()
+
     onMounted(() => {
       store.dispatch('fetchPost', currentId)
     })
     const currentPost = computed<PostProps>(() => store.getters.getCurrentPost(currentId))
     const currentHTML = computed(() => {
       if (currentPost.value && currentPost.value.content) {
-        return md.render(currentPost.value.content)
+        const { isHTML, content } = currentPost.value
+        return isHTML ? content : marked(content, { breaks: true })
       }
       return ''
     })

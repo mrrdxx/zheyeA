@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref, onMounted, onUnmounted, defineComponent, defineExpose } from 'vue'
+import { defineProps, defineEmits, ref, onMounted, onUnmounted, defineComponent, defineExpose, watch } from 'vue'
 import EasyMDE, { Options } from 'easymde'
 
 interface EditorProps {
@@ -27,6 +27,13 @@ const emit = defineEmits<EditorEvents>()
 const textArea = ref<null | HTMLTextAreaElement>(null)
 let easyMDEInstance: EasyMDE | null = null
 const innerValue = ref(props.modelValue || '')
+watch(() => props.modelValue, (newValue) => {
+  if (easyMDEInstance) {
+    if (newValue !== innerValue.value) {
+      easyMDEInstance.value(newValue || '')
+    }
+  }
+})
 onMounted(() => {
   if (textArea.value) {
     const config: Options = {
@@ -70,4 +77,8 @@ defineExpose({
 })
 </script>
 <style>
+.vue-easymde-editor.is-invalid {
+  border: 1px solid #f50808;
+
+}
 </style>
