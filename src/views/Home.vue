@@ -24,12 +24,10 @@
 </template>
 <script lang="ts">
 import { defineComponent, computed, onMounted } from 'vue'
-import { GlobalDataProps, ImageProps, ResponseType } from '@/store'
+import { GlobalDataProps } from '@/store'
 import ColumnList from '../components/ColumnList.vue'
 import { useStore } from 'vuex'
-import Uploader from '../components/Uploader.vue'
 import useLoadMore from '@/hooks/useLoaderMore'
-import createMessage from '../components/createMessage'
 export default defineComponent({
   /* eslint-disable vue/multi-word-component-names */
   name: 'Home',
@@ -39,11 +37,12 @@ export default defineComponent({
   setup () {
     const store = useStore<GlobalDataProps>()
     const total = computed(() => store.state.columns.total)
+    const currentPage = computed(() => store.state.columns.currentPage)
     onMounted(() => {
       store.dispatch('fetchColumns', { pageSize: 3 })
     })
     const list = computed(() => store.getters.getColumns)
-    const { loadMorePage, isLastPage } = useLoadMore('fetchColumns', total, { pageSize: 3, currentPage: 2 })
+    const { loadMorePage, isLastPage } = useLoadMore('fetchColumns', total, { pageSize: 3, currentPage: currentPage.value ? currentPage.value + 1 : 2 })
     return {
       list,
       loadMorePage,
